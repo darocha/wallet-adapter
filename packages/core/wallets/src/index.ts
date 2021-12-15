@@ -6,6 +6,7 @@ export * from './coin98';
 export * from './coinhub';
 export * from './ledger';
 export * from './mathwallet';
+export * from './meta';
 export * from './phantom';
 export * from './safepal';
 export * from './slope';

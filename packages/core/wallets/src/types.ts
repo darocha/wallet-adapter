@@ -9,6 +9,7 @@ export enum WalletName {
     Coinhub = 'Coinhub',
     Ledger = 'Ledger',
     MathWallet = 'MathWallet',
+    Meta = 'Meta',
     Phantom = 'Phantom',
     SafePal = 'SafePal',
     Slope = 'Slope',

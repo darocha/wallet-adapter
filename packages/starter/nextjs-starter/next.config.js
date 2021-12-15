@@ -16,6 +16,7 @@ const withTM = require('next-transpile-modules')([
     '@solana/wallet-adapter-coin98',
     '@solana/wallet-adapter-ledger',
     '@solana/wallet-adapter-mathwallet',
+    '@solana/wallet-adapter-meta',
     '@solana/wallet-adapter-phantom',
     '@solana/wallet-adapter-safepal',
     '@solana/wallet-adapter-slope',

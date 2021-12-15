@@ -84,7 +84,7 @@ export class MetaWalletAdapter extends BaseMessageSignerWalletAdapter {
             if (!wallet.isMetaWallet) throw new WalletNotInstalledError();
 
             if (!wallet.isConnected) {
-                // HACK: MetaWallet doesn't reject or emit an event if the popup is closed
+                // HACK: Meta wallet doesn't reject or emit an event if the popup is closed
                 const handleDisconnect = wallet._handleDisconnect;
                 try {
                     await new Promise<void>((resolve, reject) => {

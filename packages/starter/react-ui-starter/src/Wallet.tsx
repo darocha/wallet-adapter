@@ -3,6 +3,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import {
     getLedgerWallet,
+    getMetaWallet,
     getPhantomWallet,
     getSlopeWallet,
     getSolflareWallet,
@@ -31,6 +32,7 @@ export const Wallet: FC = () => {
             getLedgerWallet(),
             getSolletWallet({ network }),
             getSolletExtensionWallet({ network }),
+            getMetaWallet()
         ],
         [network]
     );
