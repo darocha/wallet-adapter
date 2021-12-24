@@ -25,6 +25,7 @@
         "analyze": "source-map-explorer 'build/static/js/*.js'"
     },
     "dependencies": {
+        "@babel/plugin-proposal-private-property-in-object": "^7.16.5",
         "@solana/wallet-adapter-base": "^0.7.0",
         "@solana/wallet-adapter-react": "^0.13.0",
         "@solana/wallet-adapter-react-ui": "^0.6.0",
