@@ -6,20 +6,16 @@ import dts from 'vite-plugin-dts';
 // https://vitejs.dev/config/
 export default defineConfig({
     build: {
-        outDir: 'lib',
+        target: 'es2019',
+        outDir: 'lib/esm',
         lib: {
             entry: path.resolve(__dirname, 'src/index.ts'),
             name: 'vue-ui',
             formats: ['es'],
-            fileName: () => 'index.js',
+            fileName: () => 'index.mjs',
         },
         rollupOptions: {
-            external: [
-                '@solana/wallet-adapter-base',
-                '@solana/wallet-adapter-vue',
-                '@solana/wallet-adapter-wallets',
-                'vue',
-            ],
+            external: ['@solana/wallet-adapter-base', '@solana/wallet-adapter-vue', 'vue'],
             output: {
                 globals: {
                     vue: 'Vue',
@@ -27,6 +23,7 @@ export default defineConfig({
             },
         },
         sourcemap: true,
+        minify: false,
     },
-    plugins: [vue(), dts()],
+    plugins: [vue(), dts({ tsConfigFilePath: 'tsconfig.json' })],
 });

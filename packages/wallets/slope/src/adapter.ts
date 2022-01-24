@@ -1,13 +1,16 @@
 import {
+    Adapter,
     BaseMessageSignerWalletAdapter,
-    pollUntilReady,
+    scopePollingDetectionStrategy,
     WalletAccountError,
     WalletConnectionError,
     WalletDisconnectionError,
     WalletError,
+    WalletName,
     WalletNotConnectedError,
-    WalletNotFoundError,
+    WalletNotReadyError,
     WalletPublicKeyError,
+    WalletReadyState,
     WalletSignTransactionError,
 } from '@solana/wallet-adapter-base';
 import { PublicKey, Transaction } from '@solana/web3.js';
@@ -46,49 +49,62 @@ interface SlopeWindow extends Window {
 
 declare const window: SlopeWindow;
 
-export interface SlopeWalletAdapterConfig {
-    pollInterval?: number;
-    pollCount?: number;
-}
+export interface SlopeWalletAdapterConfig {}
+
+export const SlopeWalletName = 'Slope' as WalletName;
 
 export class SlopeWalletAdapter extends BaseMessageSignerWalletAdapter {
+    name = SlopeWalletName;
+    url = 'https://slope.finance';
+    icon =
+        'data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHdpZHRoPSIxMjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgZmlsbD0iIzZlNjZmYSIgcj0iNjQiLz48ZyBmaWxsPSIjZmZmIj48cGF0aCBkPSJtMzUuMTk2MyA1NC4zOTk4aDE5LjJ2MTkuMmgtMTkuMnoiLz48cGF0aCBkPSJtNzMuNTk3IDU0LjM5OTgtMTkuMiAxOS4ydi0xOS4ybDE5LjItMTkuMnoiIGZpbGwtb3BhY2l0eT0iLjQiLz48cGF0aCBkPSJtNzMuNTk3IDczLjU5OTgtMTkuMiAxOS4ydi0xOS4ybDE5LjItMTkuMnoiIGZpbGwtb3BhY2l0eT0iLjc1Ii8+PHBhdGggZD0ibTczLjYwNCA1NC4zOTk4aDE5LjJ2MTkuMmgtMTkuMnoiLz48cGF0aCBkPSJtNTQuMzk2OCAzNS4yIDE5LjItMTkuMnYxOS4ybC0xOS4yIDE5LjJoLTE5LjJ6IiBmaWxsLW9wYWNpdHk9Ii43NSIvPjxwYXRoIGQ9Im03My41OTE1IDkyLjgtMTkuMiAxOS4ydi0xOS4ybDE5LjItMTkuMmgxOS4yeiIgZmlsbC1vcGFjaXR5PSIuNCIvPjwvZz48L3N2Zz4=';
+
     private _connecting: boolean;
     private _wallet: SlopeWallet | null;
     private _publicKey: PublicKey | null;
+    private _readyState: WalletReadyState =
+        typeof window === 'undefined' || typeof document === 'undefined'
+            ? WalletReadyState.Unsupported
+            : WalletReadyState.NotDetected;
 
     constructor(config: SlopeWalletAdapterConfig = {}) {
         super();
         this._connecting = false;
         this._wallet = null;
         this._publicKey = null;
-
-        if (!this.ready) pollUntilReady(this, config.pollInterval || 1000, config.pollCount || 3);
+        if (this._readyState !== WalletReadyState.Unsupported) {
+            scopePollingDetectionStrategy(() => {
+                if (typeof window.Slope === 'function') {
+                    this._readyState = WalletReadyState.Installed;
+                    this.emit('readyStateChange', this._readyState);
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
     get publicKey(): PublicKey | null {
         return this._publicKey;
     }
 
-    get ready(): boolean {
-        return typeof window !== 'undefined' && !!window.Slope;
-    }
-
     get connecting(): boolean {
         return this._connecting;
     }
 
-    get connected(): boolean {
-        return !!this._publicKey;
+    get readyState(): WalletReadyState {
+        return this._readyState;
     }
 
     async connect(): Promise<void> {
         try {
             if (this.connected || this.connecting) return;
+            if (this._readyState !== WalletReadyState.Installed) throw new WalletNotReadyError();
+
             this._connecting = true;
 
-            if (!window.Slope) throw new WalletNotFoundError();
-
-            const wallet = new window.Slope();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const wallet = new window!.Slope!();
 
             let data: { publicKey?: string | undefined };
             try {
@@ -109,7 +125,7 @@ export class SlopeWalletAdapter extends BaseMessageSignerWalletAdapter {
             this._wallet = wallet;
             this._publicKey = publicKey;
 
-            this.emit('connect');
+            this.emit('connect', publicKey);
         } catch (error: any) {
             this.emit('error', error);
             throw error;
